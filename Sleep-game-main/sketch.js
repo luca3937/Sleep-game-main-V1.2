@@ -12,6 +12,7 @@ let lightOn = true;
 let windowOpen = false;
 let blindFrac = 0; // 0 = fully open, ~0.45 = each blind covers 45%
 let sleepPosition = 0; // 0 = back, 1 = side, 2 = stomach
+let blanketPosition = 0; // 0 = under person, 1 = legs covered, 2 = up to shoulders
 
 let sleepQuality = 100;
 
@@ -97,8 +98,10 @@ function setup() {
     { name: "chain", x: 360, y: 30, w: 180, h: 84 },
     // window painting hitbox 
     { name: "window", x: 691, y: 40, w: 164, h: 64 },
-    // bed hitbox 
-    { name: "bed", x: 350, y: 150, w: 200, h: 300 }
+    // person hitbox around head only for changing sleep pose
+    { name: "person", x: 410, y: 180, w: 80, h: 60 },
+    // blanket/body area hitbox below person for changing blanket coverage
+    { name: "blanket", x: 352, y: 210, w: 196, h: 108 }
   ];
 }
 
@@ -157,6 +160,9 @@ function drawRoom() {
 
   // Person sprite 
   drawPerson();
+  
+  // Blanket overlay (drawn after person so it appears on top when covering)
+  drawBlanket();
 
   // window blinds (animated AI)
   // interpolate fraction towards target depending on open/closed state
@@ -247,7 +253,7 @@ function drawRoom() {
 
 function drawPerson() {
   let x = 450;
-  let y = 285;
+  let y = 230;
 
   let skin = color(230, 195, 165);
   let hair = color(55, 35, 25);
@@ -320,6 +326,47 @@ function drawPerson() {
   }
 }
 
+function drawBlanket() {
+  if (blanketPosition === 0) return;
+
+  // colors requested for blanket and fold details
+  const blanketMain = color(176, 64, 41);
+  const blanketFold = color(192, 83, 60);
+
+  // slight shadow variations for fold contrast
+  const foldShadowA = color(139, 57, 33, 180);
+  const foldShadowB = color(132, 54, 31, 140);
+  const foldShadowC = color(146, 62, 37, 120);
+
+  // bed interior area where blanket appears
+  const bedLeft = 337;
+  const bedTop = 150;
+  const bedWidth = 236;
+  const bedBottom = 300;
+
+  // 1 = blanket at legs, 2 = blanket up to shoulders
+  const coverTopY = blanketPosition === 1 ? 210 : 195;
+
+  noStroke();
+
+  // main blanket body
+  fill(blanketMain);
+  rect(bedLeft, coverTopY, bedWidth, bedBottom - coverTopY, 0, 0, 10, 10);
+
+  // folded top edge
+  fill(blanketFold);
+  rect(bedLeft, coverTopY, bedWidth, 14, 3, 3, 2, 2);
+
+  // fold shadow lines with slight variation
+  strokeWeight(1);
+  stroke(foldShadowA);
+  line(bedLeft, coverTopY + 14, bedLeft + bedWidth, coverTopY + 14);
+  stroke(foldShadowB);
+  line(bedLeft, coverTopY + 16, bedLeft + bedWidth, coverTopY + 16);
+  stroke(foldShadowC);
+  line(bedLeft, coverTopY + 18, bedLeft + bedWidth, coverTopY + 18);
+  noStroke();
+}
 
 function drawUI() {
 
@@ -400,27 +447,34 @@ function mousePressed() {
   }
 
   // thermostat not active: regular object handling
+  let handled = false;
   for (let obj of objects) {
-    if (isHovering(obj)) {
+    if (isHovering(obj) && !handled) {
       if (obj.name === "thermostat") {
         thermostatActive = true;
         advanceTime(); // fixed 15 minutes for opening
+        handled = true;
       }
-
-      if (obj.name === "chain") {
+      else if (obj.name === "chain") {
         lightOn = !lightOn;
         lightTransitionStart = millis();
         advanceTime();
+        handled = true;
       }
-
-      if (obj.name === "window") {
+      else if (obj.name === "window") {
         windowOpen = !windowOpen;
         advanceTime();
+        handled = true;
       }
-
-      if (obj.name === "bed") {
+      else if (obj.name === "person") {
         sleepPosition = (sleepPosition + 1) % 3;
         advanceTime();
+        handled = true;
+      }
+      else if (obj.name === "blanket") {
+        blanketPosition = (blanketPosition + 1) % 3;
+        advanceTime();
+        handled = true;
       }
     }
   }
