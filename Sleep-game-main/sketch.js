@@ -18,7 +18,7 @@ let sleepQuality = 100;
 // thermostat popup state
 let thermostatActive = false;
 let popup = {x:0,y:0,w:0,h:0};
-let popupArrows = []; // will hold {name:'up'/'down',x,y,w,h}
+let popupArrows = []; //  Array for {name:'up'/'down',x,y,w,h}
 
 // lighting transition state
 let lightAlpha = 0;
@@ -32,7 +32,6 @@ let objects = [];
 // sprite handles
 let thermostatUpImg, thermostatDownImg;
 let lightOnImg, lightOffImg;
-// window images are no longer used; window is drawn in room.png
 let roomImg; // full room background
 let personBackImg, personSideImg, personStomachImg;
 
@@ -52,7 +51,7 @@ function preload() {
   personStomachImg = loadImage('assets/person_stomach.png');
 }
 
-// fixed game resolution used for all logic and hitboxes
+// resolution used for all logic and hitboxes
 const GAME_W = 900;
 const GAME_H = 600;
 
@@ -62,7 +61,7 @@ let offsetY = 0;
 let patternGraphics;
 
 function setup() {
-  // canvas fills the window; we render the game into a centered, scaled region
+  // canvas fills the window; game rendered into a centered, scaled region
   createCanvas(windowWidth, windowHeight);
   updateScaling();
 
@@ -80,7 +79,7 @@ function setup() {
     window.location.reload();
   });
 
-  // position will be updated in draw() so we can recalc each frame
+  // position will be updated in draw() 
   updateButtonPositions();
 
   // restart button reloads the page, resetting the entire sketch
@@ -94,24 +93,24 @@ function setup() {
   objects = [
     // single hitbox for the thermostat control
     { name: "thermostat", x: 576, y: 36, w: 90, h: 40 },
-    // light chain over bed is now the switch
+    // light chain over bed for light switch
     { name: "chain", x: 360, y: 30, w: 180, h: 84 },
-    // window painting hitbox moved upward about 60% of its height
+    // window painting hitbox 
     { name: "window", x: 691, y: 40, w: 164, h: 64 },
-    // bed hitbox updated for 90° rotation (vertical orientation)
+    // bed hitbox 
     { name: "bed", x: 350, y: 150, w: 200, h: 300 }
   ];
 }
 
 function draw() {
-  // paint the surrounding area with a retro-pixel pattern
+  // Background around game paint 
   if (patternGraphics) {
     image(patternGraphics, 0, 0);
   } else {
     background(220);
   }
 
-  // apply center/scale transform for the game itself
+  // center/scale transformation for the game itself
   push();
   translate(offsetX, offsetY);
   scale(scaleFactor);
@@ -132,10 +131,10 @@ function draw() {
 
 function drawRoom() {
 
-  // draw combined room background into the virtual game resolution
+  // draw combined room background
   image(roomImg, 0, 0, GAME_W, GAME_H);
 
-  // darkening overlay with animated transition when the light toggles
+  // darkening overlay with animated transition when the light toggles (AI)
   // determine desired alpha based on current light state
   lightTargetAlpha = lightOn ? 0 : 150;
 
@@ -156,19 +155,19 @@ function drawRoom() {
     rect(0, 0, GAME_W, GAME_H);
   }
 
-  // Person sprite (remains unrotated so head points up)
+  // Person sprite 
   drawPerson();
 
-  // window blinds (animated)
+  // window blinds (animated AI)
   // interpolate fraction towards target depending on open/closed state
   blindFrac = lerp(blindFrac, windowOpen ? 0 : 0.45, 0.1);
   if (blindFrac > 0.001) {
     let wx = 691, wy = 40, ww = 164, wh = 64;
     // medium-blue fill for balanced contrast
     fill(0, 0, 180);
-    // expand vertically: even taller with a few extra pixels below
+    // expand vertically
     let extraTop = wh * 0.20;
-    let extraBottom = wh * 0.15 + 5; // additional 5px at bottom
+    let extraBottom = wh * 0.15 + 5; 
     let drawY = wy - extraTop;
     let drawH = wh + extraTop + extraBottom;
     // compute base width for each blind
@@ -178,7 +177,7 @@ function drawRoom() {
     let leftX = wx - leftExtra;
     let leftW = baseBlindW + leftExtra;
     rect(leftX, drawY, leftW, drawH);
-    // draw vertical slats inside left blind (mid-tone for subtler contrast)
+    // draw vertical slats inside left blind 
     stroke(120, 120, 200);
     let slatCount = 4;
     for (let i = 1; i <= slatCount; i++) {
@@ -192,7 +191,7 @@ function drawRoom() {
     let rightX = wx + ww - baseBlindW;
     let rightW = baseBlindW + rightExtra;
     rect(rightX, drawY, rightW, drawH);
-    // vertical slats on right blind (mid-tone)
+    // vertical slats on right blind 
     stroke(120, 120, 200);
     for (let i = 1; i <= slatCount; i++) {
       let xpos = rightX + (i * rightW) / (slatCount + 1);
@@ -212,14 +211,14 @@ function drawRoom() {
   fill(0, 0, 0, 50);
   rect(tx+2, ty+2, tw, th, 6);
   pop();
-  // draw a slightly transparent rounded panel
+  // slightly transparent round panel
   push();
   noStroke();
   fill(red(c), green(c), blue(c), 200);
   rect(tx, ty, tw, th, 6);
   pop();
 
-  // thermostat icon on left
+  // thermostat icon 
   let iconX = tx + 10;
   let iconY = ty + th/2;
   push();
@@ -230,7 +229,7 @@ function drawRoom() {
   ellipse(iconX, iconY, 8, 8);
   pop();
 
-  // temperature text using a muted colour
+  // temperature text 
   fill(220);
   textSize(14);
   textAlign(LEFT, CENTER);
@@ -247,39 +246,111 @@ function drawRoom() {
 }
 
 function drawPerson() {
-  let x = 450, y = 280; // raise character slightly to center on bed
+  let x = 450;
+  let y = 285;
+
+  let skin = color(230, 195, 165);
+  let hair = color(55, 35, 25);
+  let pajamaMain = color(70, 105, 165);
+  let pajamaShade = color(55, 88, 145);
+  let cuff = color(230, 235, 245);
+
+  noStroke();
+
   if (sleepPosition === 0) {
-    // back
-    image(personBackImg, x - 20, y - 30, 40, 60);
+    fill(pajamaMain);
+    rect(x - 20, y - 32, 40, 50, 8);
+    fill(pajamaShade);
+    rect(x - 18, y + 16, 16, 18, 5);
+    rect(x + 2, y + 16, 16, 18, 5);
+
+    fill(skin);
+    rect(x - 26, y - 24, 8, 24, 4);
+    rect(x + 18, y - 24, 8, 24, 4);
+
+    fill(cuff);
+    rect(x - 19, y - 12, 38, 5, 3);
+
+    fill(skin);
+    ellipse(x, y - 42, 24, 20);
+    fill(hair);
+    arc(x, y - 45, 24, 15, PI, TWO_PI);
   } else if (sleepPosition === 1) {
-    // side
-    image(personSideImg, x - 30, y - 20, 60, 40);
+    // side-sleeping on shoulder 
+    fill(pajamaMain);
+    rect(x - 18, y - 32, 36, 50, 8);
+
+    // subtle side profile shaping
+    fill(pajamaShade);
+    rect(x - 16, y - 30, 14, 46, 6);
+
+    // legs
+    fill(pajamaShade);
+    rect(x - 16, y + 16, 14, 18, 5);
+    rect(x, y + 16, 14, 18, 5);
+
+    // arm tucked under pillow side
+    fill(skin);
+    rect(x - 22, y - 20, 7, 18, 4);
+
+    // head turned to side (profile)
+    fill(skin);
+    ellipse(x - 6, y - 42, 21, 18);
+    fill(hair);
+    arc(x - 7, y - 45, 21, 13, PI, TWO_PI);
+
+    // pajama neckline cuff
+    fill(cuff);
+    rect(x - 8, y - 12, 14, 5, 2);
   } else {
-    // stomach
-    image(personStomachImg, x - 20, y - 30, 40, 60);
+    fill(pajamaShade);
+    rect(x - 22, y - 34, 44, 54, 9);
+    fill(pajamaMain);
+    rect(x - 19, y + 16, 18, 18, 5);
+    rect(x + 1, y + 16, 18, 18, 5);
+
+    fill(skin);
+    rect(x - 30, y - 22, 9, 22, 4);
+    rect(x + 21, y - 22, 9, 22, 4);
+
+    fill(skin);
+    ellipse(x + 5, y - 44, 22, 19);
+    fill(hair);
+    arc(x + 5, y - 46, 22, 14, PI, TWO_PI);
   }
 }
 
 
 function drawUI() {
 
-  fill(255);
-  textSize(18);
-  textAlign(LEFT);
-
   let displayHour = floor(currentMinutes / 60) % 24;
   let displayMin = currentMinutes % 60;
   let formattedMin = displayMin < 10 ? "0" + displayMin : displayMin;
 
-  // draw at bottom-left corner of virtual game area
-  let baseX = 40;
-  let baseY = GAME_H - 80;
+  // stats panel in lower-left 
+  let panelX = 38;
+  let panelY = GAME_H - 128;
+  let panelW = 260;
+  let panelH = 104;
+
+  push();
+  stroke(255, 255, 255, 130);
+  strokeWeight(2);
+  fill(0, 0, 0, 90);
+  rect(panelX, panelY, panelW, panelH, 10);
+  pop();
+
+  fill(255);
+  textSize(18);
+  textAlign(LEFT, TOP);
+  let baseX = panelX + 14;
+  let baseY = panelY + 12;
   text(displayHour + ":" + formattedMin, baseX, baseY);
   text("Wake: 06:00", baseX, baseY + 30);
   text("Sleep Quality: " + sleepQuality, baseX, baseY + 60);
 
   if (gameOver) {
-    // if gameOver was triggered by the button we may not have advanced time
+    
     textSize(40);
     textAlign(CENTER, CENTER);
     text("Morning!\nFinal Sleep Quality: " + sleepQuality, GAME_W/2, GAME_H/2);
@@ -300,14 +371,14 @@ function drawUI() {
 function mousePressed() {
   if (gameOver) return;
 
-  // convert to game coordinates immediately
+  // convert to game coordinates 
   let gx = (mouseX - offsetX) / scaleFactor;
   let gy = (mouseY - offsetY) / scaleFactor;
 
   if (thermostatActive) {
     // check clicks relative to popup
     if (gx < popup.x || gx > popup.x + popup.w || gy < popup.y || gy > popup.y + popup.h) {
-      // clicked outside popup → close
+      // clicked outside popup -> close
       thermostatActive = false;
       return;
     }
@@ -457,7 +528,7 @@ function updateButtonPositions() {
 // helper functions for scaling & pattern
 
 function updateScaling() {
-  // never scale the game larger than its native resolution to avoid blurry assets
+  // never scale the game larger than its native resolution 
   scaleFactor = min(1, width / GAME_W, height / GAME_H);
   offsetX = (width - GAME_W * scaleFactor) / 2;
   offsetY = (height - GAME_H * scaleFactor) / 2;
@@ -501,16 +572,12 @@ function calculateSleepQuality() {
 
 
 //fix player model
-//Animated lighting
-//Thermometer blend better
-//Thermometer popup change 
 //Make blanket animations for amount% covered
+//Adjust sleep quality
 
 //Create more days, add weather effects, add sound effects, 
-//Add cat, that can sleep on the bed with you + sleep quality
+//Add more interactables which affects sleep quality in different ways (e.g. music, white noise, fan, etc.)
 
-//Adjust sleep quality, easter eggs at certain %
 //Add dream minigames
-//Add blinds minigames
 //Minigames for all interactions, with different difficulty levels based on sleep quality
 //Add more interactions (e.g. alarm clock, phone, etc.) and corresponding minigames
