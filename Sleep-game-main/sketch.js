@@ -1,13 +1,43 @@
 
+// Sleep quality modifiers - easily adjustable config
+const SLEEP_QUALITY_CONFIG = {
+  baseQuality: 60, // starting point for quality before modifiers
+  timing: {
+    startTime: 20 * 60,   // 20:00 in minutes
+    wakeUpTime: 6 * 60    // 06:00 in minutes
+  },
+  temperature: {
+    idealTemp: 17.5,
+    penaltyPerDegree: 4
+  },
+  light: {
+    penalty: 20
+  },
+  blinds: {
+    open: -10,    // penalty when blinds are open
+    closed: 10    // bonus when blinds are closed
+  },
+  sleepPosition: {
+    side: -5,      // bonus for position 1 (side)
+    back: 5,      // position 0 (back)
+    stomach: -5    // position 2 (stomach)
+  },
+  blanket: {
+    under: -10,     // bonus for position 0 (under person)
+    legs: 10,     // bonus for position 1 (legs covered)
+    shoulders: 20 // bonus for position 2 (up to shoulders)
+  }
+};
+
 // Time and game state 
-let currentMinutes = 20 * 60; // 20:00
-let wakeUpTime = 6 * 60;      // 06:00
+let currentMinutes = SLEEP_QUALITY_CONFIG.timing.startTime;
+let wakeUpTime = SLEEP_QUALITY_CONFIG.timing.wakeUpTime;
 let gameOver = false;
 let sleepButton; // button to end game early
 let restartButton; // reloads page to start over
 
 // Sleep Parameters 
-let temperature = 20.0; // 10 - 30, supports .5 steps
+let temperature = 30.0; // 10 - 30, supports .5 steps
 let lightOn = true;
 let windowOpen = false;
 let blindFrac = 0; // 0 = fully open, ~0.45 = each blind covers 45%
@@ -36,7 +66,13 @@ let lightOnImg, lightOffImg;
 let roomImg; // full room background
 let personBackImg, personSideImg, personStomachImg;
 
+// custom font
+let customFont;
+
 function preload() {
+  // load custom font
+  customFont = loadFont('assets/VT323-Regular.ttf');
+  
   // load only required sprites and background
   thermostatUpImg = loadImage('assets/thermostat_up.png');
   thermostatDownImg = loadImage('assets/thermostat_down.png');
@@ -65,6 +101,9 @@ function setup() {
   // canvas fills the window; game rendered into a centered, scaled region
   createCanvas(windowWidth, windowHeight);
   updateScaling();
+  
+  // apply custom font globally
+  textFont(customFont);
 
   patternGraphics = createGraphics(width, height);
   generatePattern(patternGraphics);
@@ -72,6 +111,8 @@ function setup() {
   // create the "sleep" button; clicking it ends the game immediately
   sleepButton = createButton('Sleep');
   sleepButton.mousePressed(goSleep);
+  sleepButton.style('font-family', 'VT323');
+  sleepButton.style('font-size', '14px');
 
   // restart button reloads the page, resetting the entire sketch
   restartButton = createButton('Restart');
@@ -79,6 +120,8 @@ function setup() {
     // simple page refresh
     window.location.reload();
   });
+  restartButton.style('font-family', 'VT323');
+  restartButton.style('font-size', '14px');
 
   // position will be updated in draw() 
   updateButtonPositions();
@@ -608,30 +651,56 @@ function generatePattern(g) {
 
 
 function calculateSleepQuality() {
+  sleepQuality = SLEEP_QUALITY_CONFIG.baseQuality;
 
-  sleepQuality = 100;
+  // Temperature penalty
+  const tempDifference = abs(SLEEP_QUALITY_CONFIG.temperature.idealTemp - temperature);
+  sleepQuality -= tempDifference * SLEEP_QUALITY_CONFIG.temperature.penaltyPerDegree;
 
-  // Temperature ideal ~18-21
-  sleepQuality -= abs(19 - temperature) * 2;
+  // Light penalty (affected by light on/off and blind coverage)
+  if (lightOn) {
+    sleepQuality -= SLEEP_QUALITY_CONFIG.light.penalty;
+  }
+  // Blinds bonus/penalty based on coverage
+  if (blindFrac < 0.2) {
+    // Blinds are open
+    sleepQuality += SLEEP_QUALITY_CONFIG.blinds.open;
+  } else {
+    // Blinds are closed
+    sleepQuality += SLEEP_QUALITY_CONFIG.blinds.closed;
+  }
 
-  // Light penalty
-  if (lightOn) sleepQuality -= 20;
+  // Sleep position bonus
+  const positionBonuses = [
+    SLEEP_QUALITY_CONFIG.sleepPosition.back,
+    SLEEP_QUALITY_CONFIG.sleepPosition.side,
+    SLEEP_QUALITY_CONFIG.sleepPosition.stomach
+  ];
+  sleepQuality += positionBonuses[sleepPosition];
 
-  // Position bonus
-  if (sleepPosition === 1) sleepQuality += 5;
+  // Blanket coverage bonus
+  const blanketBonuses = [
+    SLEEP_QUALITY_CONFIG.blanket.under,
+    SLEEP_QUALITY_CONFIG.blanket.legs,
+    SLEEP_QUALITY_CONFIG.blanket.shoulders
+  ];
+  sleepQuality += blanketBonuses[blanketPosition];
 
   sleepQuality = constrain(sleepQuality, 0, 100);
 }
 
 
 
-//fix player model
-//Make blanket animations for amount% covered
 //Adjust sleep quality
+//Sleep & Restart button changes
+//Sleep later
+//Add more interactables which affects sleep quality in different ways (e.g. music, white noise, fan, etc.)
 
 //Create more days, add weather effects, add sound effects, 
-//Add more interactables which affects sleep quality in different ways (e.g. music, white noise, fan, etc.)
 
 //Add dream minigames
 //Minigames for all interactions, with different difficulty levels based on sleep quality
-//Add more interactions (e.g. alarm clock, phone, etc.) and corresponding minigames
+//Add more interactions (e.g. alarm clock, phone, etc.) ( + and corresponding minigames)
+
+
+
