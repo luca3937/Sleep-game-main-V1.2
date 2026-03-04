@@ -1,10 +1,10 @@
 // SLEEP QUALITY CONFIG - Easily adjustable game parameters
 
 const SLEEP_QUALITY_CONFIG = {
-  baseQuality: 65,
+  baseQuality: 60,
   timing: {
-    startTime: 21 * 60, // 21:00 in hours
-    wakeUpTime: 6 * 60 // 06:00 in hours
+    startTime: 20 * 60,
+    wakeUpTime: 6 * 60
   },
   temperature: {
     idealTemp: 17.5,
@@ -36,8 +36,6 @@ const GAME_W = 900;
 const GAME_H = 600;
 const LIGHT_TRANSITION_DURATION = 1000;
 const TIME_ADVANCE_PER_INTERACTION = 15;
-const PERFECT_SLEEP_HOURS = 7;
-const SLEEP_SCORE_PER_HOUR_OFF = 10;
 
 // Game state variables
 
@@ -48,7 +46,7 @@ let gameOver = false;
 // Sleep parameter variables
 let temperature = 30.0;
 let lightOn = true;
-let windowOpen = true;
+let windowOpen = false;
 let blindFrac = 0;
 let sleepPosition = 0;
 let blanketPosition = 0;
@@ -398,7 +396,7 @@ function drawStatsPanel(hour, min) {
 function drawGameOverScreen() {
   textSize(40);
   textAlign(CENTER, CENTER);
-  text("Morning\nFinal Sleep Quality: " + sleepQuality, GAME_W / 2, GAME_H / 2);
+  text("Morning!\nFinal Sleep Quality: " + sleepQuality, GAME_W / 2, GAME_H / 2);
   noLoop();
 }
 
@@ -533,25 +531,12 @@ function advanceTime() {
 
 function goSleep() {
   currentMinutes = 24 * 60 + wakeUpTime;
-  finalizeSleepQuality();
   gameOver = true;
   if (sleepButton) sleepButton.attribute('disabled', '');
 }
 
 function endGame() {
-  finalizeSleepQuality();
   gameOver = true;
-}
-
-function finalizeSleepQuality() {
-  calculateSleepQuality();
-
-  const sleepDurationHours = (currentMinutes - SLEEP_QUALITY_CONFIG.timing.startTime) / 60;
-  const hoursOffPerfect = abs(sleepDurationHours - PERFECT_SLEEP_HOURS);
-  const sleepDurationPenalty = hoursOffPerfect * SLEEP_SCORE_PER_HOUR_OFF;
-
-  sleepQuality -= sleepDurationPenalty;
-  sleepQuality = constrain(sleepQuality, 0, 100);
 }
 
 function calculateSleepQuality() {
@@ -620,7 +605,6 @@ function windowResized() {
 
 
 // TODO:
-// Add scoreboard with previous playthroughs and days
 
 // Add more interactables which affect sleep quality (e.g. music, white noise, fan, etc.)
 // Create multiple days of gameplay
