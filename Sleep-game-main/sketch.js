@@ -26,6 +26,9 @@ const SLEEP_QUALITY_CONFIG = {
     under: -10,
     legs: 10,
     shoulders: 20
+  },
+  audio: {
+    themeVolume: 0.1 // Range: 0.0 to 1.0
   }
 };
 
@@ -82,6 +85,8 @@ let thermostatDownImg;
 let personBackImg;
 let personSideImg;
 let personStomachImg;
+let themeMusic;
+let mouseClickSound;
 
 // Preload
 
@@ -93,6 +98,8 @@ function preload() {
   personBackImg = loadImage('assets/person_back.png');
   personSideImg = loadImage('assets/person_side.png');
   personStomachImg = loadImage('assets/person_stomach.png');
+  themeMusic = loadSound('assets/gods_notebook_-_main_theme.mp3');
+  mouseClickSound = loadSound('assets/mouse_click.mp3');
 }
 
 // Setup
@@ -105,6 +112,12 @@ function setup() {
 
   patternGraphics = createGraphics(width, height);
   generatePattern(patternGraphics);
+
+  // Initialize background music
+  themeMusic.loop();
+  setTimeout(() => {
+    themeMusic.setVolume(SLEEP_QUALITY_CONFIG.audio.themeVolume);
+  }, 100);
 
   setupButtons();
   setupInteractiveObjects();
@@ -461,6 +474,8 @@ function highlightHover() {
 // Input handling
 
 function mousePressed() {
+  mouseClickSound.play();
+  
   if (gameOver) return;
 
   const gx = (mouseX - offsetX) / scaleFactor;

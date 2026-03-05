@@ -606,10 +606,11 @@ function windowResized() {
 
 // TODO:
 
+
 // Add more interactables which affect sleep quality (e.g. music, white noise, fan, etc.)
-// Create multiple days of gameplay
+// #1: Create multiple days of gameplay
 // Add weather effects
-// Add sound effects
+// #2: Add sound effects
 // Add dream minigames
 // Minigames for all interactions with different difficulty levels based on sleep quality
 // Add more interactions (e.g. alarm clock, phone, etc.) + corresponding minigames
